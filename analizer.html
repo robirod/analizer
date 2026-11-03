@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualizador FFT de Espectro Completo (20Hz - 20kHz)</title>
+    <style>
+        body {
+            margin: 0;
+            background-color: #0e1111;
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        h1 {
+            margin-bottom: 5px;
+            font-weight: 400;
+            font-size: 1.5rem;
+            color: #e0e0e0;
+        }
+
+        p {
+            margin-top: 0;
+            margin-bottom: 20px;
+            color: #888;
+            font-size: 0.9rem;
+        }
+
+        #canvas {
+            width: 85%;
+            height: 450px;
+            background-color: #161b22;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+        }
+
+        button {
+            padding: 12px 24px;
+            font-size: 1rem;
+            font-weight: 600;
+            background-color: #007aff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3);
+        }
+
+        button:hover {
+            background-color: #0063cc;
+        }
+
+        #controls {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Visualizador FFT Espectro Completo</h1>
+    <p>Rango Completo de Audio en Tiempo Real: 20 Hz - 20 kHz</p>
+
+    <div id="controls">
+        <button id="startBtn">Activar Micrófono</button>
+    </div>
+
+    <canvas id="canvas"></canvas>
+
+    <script>
+        const startBtn = document.getElementById('startBtn');
+        const canvas = document.getElementById('canvas');
+        const canvasCtx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = canvas.clientWidth;
+            canvas.height = canvas.clientHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        startBtn.addEventListener('click', async () => {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+                startBtn.style.display = 'none';
+
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const source = audioCtx.createMediaStreamSource(stream);
+
+                const analyzer = audioCtx.createAnalyser();
+                // Ajustamos fftSize a 4096 para mayor resolución en el extremo bajo (20Hz)
+                analyzer.fftSize = 4096; 
+                
+                const bufferLength = analyzer.frequencyBinCount;
+                const dataArray = new Uint8Array(bufferLength);
+                const sampleRate = audioCtx.sampleRate;
+
+                source.connect(analyzer);
+
+                function draw() {
+                    requestAnimationFrame(draw);
+
+                    analyzer.getByteFrequencyData(dataArray);
+
+                    canvasCtx.fillStyle = '#161b22';
+                    canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+
+                    
+                    const minFreq = 20;
+                    const maxFreq = 20000;
+
+
+                    for (let x = 0; x < canvas.width; x++) {
+                        const logMin = Math.log10(minFreq);
+                        const logMax = Math.log10(maxFreq);
+                        const percentX = x / canvas.width;
+                        const targetFreq = Math.pow(10, logMin + percentX * (logMax - logMin));
+
+                      
+                        const binIndex = Math.floor((targetFreq * bufferLength) / (sampleRate / 2));
+
+                        if (binIndex < bufferLength) {
+                            const value = dataArray[binIndex];
+                            const percentHeight = value / 255;
+                            const barHeight = percentHeight * canvas.height;
+
+                      
+                            const hue = (x / canvas.width) * 280; 
+                            const saturation = 80 + (value / 255) * 20;
+                            const lightness = 10 + (value / 255) * 45;
+
+                            canvasCtx.fillStyle = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+                            
+                            canvasCtx.fillRect(x, canvas.height - barHeight, 1, barHeight);
+                        }
+                    }
+                }
+
+                draw();
+
+            } catch (err) {
+                console.error('Error al acceder al micrófono:', err);
+                alert('No se pudo acceder al micrófono. Por favor revisa los permisos del navegador.');
+            }
+        });
+    </script>
+</body>
+</html>
