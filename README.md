@@ -18,17 +18,10 @@
 
 Al ser una herramienta puramente de lado del cliente (*client-side*), tienes dos formas muy sencillas de utilizarlo:
 
-### Opción 1: Uso Local (En tu computadora)
+### Uso Local (En tu equipo)
 1. Descarga o clona este repositorio.
-2. Haz doble clic en el archivo `index.html` para abrirlo en tu navegador favorito.
+2. Haz doble clic en el archivo `analizer.html` para abrirlo en tu navegador favorito.
 3. Haz clic en **"Activar Micrófono"**, otorga los permisos necesarios y empieza a hablar o emitir señales.
-
-### Opción 2: Despliegue en la Web (Ideal para presentaciones)
-Puedes activar **GitHub Pages** en este mismo repositorio para tener una URL pública en un par de clics:
-1. Ve a la pestaña **Settings** de tu repositorio de GitHub.
-2. En el menú lateral izquierdo, haz clic en **Pages**.
-3. En la sección *Build and deployment*, selecciona la rama `main` (o `master`) y la carpeta `/ (root)`.
-4. Haz clic en **Save**. ¡Listo! En unos segundos tendrás tu enlace público listo para presentar desde cualquier equipo con internet.
 
 ---
 
